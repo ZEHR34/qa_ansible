@@ -1,0 +1,9 @@
+[databases]
+db  ansible_host=192.168.1.121
+
+[appServers]
+app ansible_host=192.168.1.120
+
+[enve1:children]
+databases
+appServers

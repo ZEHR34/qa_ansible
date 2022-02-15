@@ -1,0 +1,108 @@
+---
+- hosts: databases
+  tasks:
+  - name: database installation
+    become: yes
+    apt:
+      name:
+        - python3-psycopg2
+        - postgresql 
+        - postgresql-contrib
+      state: latest
+
+  - name: database enable autostart
+    become: yes
+    service: name=postgresql state=started enabled=yes
+
+  - name: change postgres network binding
+    become: yes
+    lineinfile:
+      path: /etc/postgresql/13/main/postgresql.conf
+      regexp: '# listen_addresses'
+      line: "listen_addresses = '*'"
+
+  - name: change postgres pg hba access
+    become: yes
+    lineinfile:
+      path: /etc/postgresql/13/main/pg_hba.conf
+      regexp: 'host  all  all all md5'
+      line: 'host  all  all all md5'
+
+  - name: create postgresql user
+    postgresql_user:
+      user: "{{ db_user }}"
+      password: "{{ db_password }}"
+      role_attr_flags: "CREATEDB,NOSUPERUSER"
+    become: true
+    become_user: postgres
+
+  - name: create postgresql db
+    postgresql_db:
+      name: "qa_db"
+      state: present
+    become: true
+    become_user: postgres
+
+  - name: restatrt db ufter configure
+    become: yes
+    service: name=postgresql state=restarted
+
+  # - name: Create postgres user for my app
+  #   become: yes
+  #   become_user: postgres
+  #   postgresql_user:
+  #     name: "{{ db_user }}"
+  #     password: "{{ db_password }}"
+
+  # - name: Ensure we have access from the new user
+  #   become: yes
+  #   become_user: postgres
+  #   postgresql_privs:
+  #     db: qa_db
+  #     role: "{{ db_user }}"
+  #     objs: ALL_IN_SCHEMA
+  #     privs: SELECT,INSERT,UPDATE,DELETE
+
+  # - name: Create rails user, set MD5-hashed password, grant privs
+  #   become: yes
+  #   postgresql_user:
+  #     name: "{{ db_user }}"
+  #     password: md5e7df7cd2ca07f4f1ab415d457a6e1c13
+  #     role_attr_flags: CREATEDB,SUPERUSER
+
+  # - name: "Create app database"
+  #   become: yes
+  #   become_user: postgres
+  #   postgresql_db:
+  #     state: present
+  #     name: "qa_db"
+
+  # - name: "Create db user"
+  #   postgresql_user:
+  #     state: present
+  #     name: "{{ db_user }}"
+  #     password: "{{ db_password }}"
+  #   become: yes
+  #   become_user: postgres
+
+  # - name: "Grant db user access to app db"
+  #   postgresql_privs:
+  #     type: database
+  #     database: "qa_db"
+  #     roles: "{{ db_user }}"
+  #     grant_option: no
+  #     privs: all
+  #   become: yes
+  #   become_user: postgres
+
+  # - name: "Allow md5 connection for the db user"
+  #   postgresql_pg_hba:
+  #     dest: "~/data/pg_hba.conf"
+  #     contype: host
+  #     databases: all
+  #     method: md5
+  #     users: "{{ db_user }}"
+  #     create: true
+  #   become: yes
+  #   become_user: postgres
+  #   notify: restart postgres

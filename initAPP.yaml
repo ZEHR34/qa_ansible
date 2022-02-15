@@ -1,0 +1,69 @@
+---
+- hosts: appServers
+  tasks:
+  - name: download java
+    become: yes
+    apt:
+      name:
+        - openjdk-16-jre
+      state: latest
+
+  # - name: Create postgres user for my app
+  #   become: yes
+  #   become_user: postgres
+  #   postgresql_user:
+  #     name: "{{ db_user }}"
+  #     password: "{{ db_password }}"
+
+  # - name: Ensure we have access from the new user
+  #   become: yes
+  #   become_user: postgres
+  #   postgresql_privs:
+  #     db: qa_db
+  #     role: "{{ db_user }}"
+  #     objs: ALL_IN_SCHEMA
+  #     privs: SELECT,INSERT,UPDATE,DELETE
+
+  # - name: Create rails user, set MD5-hashed password, grant privs
+  #   become: yes
+  #   postgresql_user:
+  #     name: "{{ db_user }}"
+  #     password: md5e7df7cd2ca07f4f1ab415d457a6e1c13
+  #     role_attr_flags: CREATEDB,SUPERUSER
+
+  # - name: "Create app database"
+  #   become: yes
+  #   become_user: postgres
+  #   postgresql_db:
+  #     state: present
+  #     name: "qa_db"
+
+  # - name: "Create db user"
+  #   postgresql_user:
+  #     state: present
+  #     name: "{{ db_user }}"
+  #     password: "{{ db_password }}"
+  #   become: yes
+  #   become_user: postgres
+
+  # - name: "Grant db user access to app db"
+  #   postgresql_privs:
+  #     type: database
+  #     database: "qa_db"
+  #     roles: "{{ db_user }}"
+  #     grant_option: no
+  #     privs: all
+  #   become: yes
+  #   become_user: postgres
+
+  # - name: "Allow md5 connection for the db user"
+  #   postgresql_pg_hba:
+  #     dest: "~/data/pg_hba.conf"
+  #     contype: host
+  #     databases: all
+  #     method: md5
+  #     users: "{{ db_user }}"
+  #     create: true
+  #   become: yes
+  #   become_user: postgres
+  #   notify: restart postgres
